@@ -4,7 +4,7 @@ from .MIDI import * # import MIDI status codes
 
 
 # debug_mode: whether the log-function should output to logfile
-debug_mode = False
+debug_mode = True
 
 """
 	"<setting>": Note (<MIDI note#> [, <MIDI channel>])
@@ -251,30 +251,30 @@ midi_mapping = {
 	
 	"toggle_auto_arm": Note(11),
 	
-	"prev_scene": Note(82),
-	"next_scene": Note(83),
-	"prev_track": Note(84),
-	"next_track": Note(85),
+	"prev_scene": CC(30),
+	"next_scene": CC(31),
+	"prev_track": CC(25),
+	"next_track": CC(26),
 	
-	"play_selected_scene": Note(38),
+	"play_selected_scene": CC(22),
 	"play_next_scene": Note(40),
 	"play_prev_scene": Note(36),
 	
-	"first_scene": Note(37),
-	"last_scene": Note(39),
+	"first_scene": CC(29),
+	"last_scene": CC(30),
 	"first_track": Note(46),
 	"last_track": Note(47),
 	
 	"play_selected_clip": (Note(43), NoteOff(43)), # listen to "Note Off" as well, to support clip-launch mode "Gate"
-	"toggle_selected_clip": Note(73),
+	"toggle_selected_clip": CC(20),
 	"play_next_clip": Note(45),
 	"play_prev_clip": Note(41),
 	"play_next_available_clip": Note(44),
 	"play_prev_available_clip": Note(42),
-	"stop_all_clips": Note(49),
+	"stop_all_clips": CC(23),
 	"stop_selected_track": Note(48),
 	
-	"select_playing_clip": Note(50), # highlights clipslot with currently playing clip 
+	"select_playing_clip": CC(27), # highlights clipslot with currently playing clip 
 	"toggle_auto_select_playing_clip": Note(51),
 	
 	#"toggle_mute_selected_clip": Note(50), # does not do anything
@@ -403,7 +403,7 @@ midi_mapping = {
 	#"delete_scene": CC(<INT>, ABSOLUTE), # depending on value
 	"delete_selected_scene": Note(100),
 	#"duplicate_track": CC(<INT>, ABSOLUTE), # depending on value
-	"duplicate_selected_track": Note(101),
+	"duplicate_selected_track": CC(23),
 	#"create_midi_track_at": CC(<INT>, ABSOLUTE), # depending on value
 	"create_midi_track_after": Note(102),
 	#"create_midi_track_before": Note(),
@@ -418,7 +418,7 @@ midi_mapping = {
 	#"duplicate_clip_slot": CC(<INT>, ABSOLUTE), # depending on value
 	"duplicate_selected_clip_slot": Note(107),
 	#"delete_clip": CC(<INT>, ABSOLUTE), # depending on value
-	"delete_selected_clip": Note(108),
+	"delete_selected_clip": CC(24),
 
 	"re_enable_automation": Note(109),
 	"arrangement_overdub": Note(117),

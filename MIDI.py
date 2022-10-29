@@ -5,7 +5,7 @@ import Live
 #from Live import MidiMap
 #from Live.MidiMap import MapMode
 
-DEFAULT_CHANNEL = 0
+DEFAULT_CHANNEL = 13
 
 STATUS_MASK = 0xF0
 CHAN_MASK =  0x0F
