@@ -1,16 +1,16 @@
 import Live
 
-import MIDI
-import settings
+from . import MIDI
+from . import settings
 #from Logging import log
 
 
-from SessionControl import SessionControl
-from MixerControl import MixerControl
-from GlobalControl import GlobalControl
-from ViewControl import ViewControl
-from DeviceControl import DeviceControl
-from QuantizationControl import QuantizationControl
+from .SessionControl import SessionControl
+from .MixerControl import MixerControl
+from .GlobalControl import GlobalControl
+from .ViewControl import ViewControl
+from .DeviceControl import DeviceControl
+from .QuantizationControl import QuantizationControl
 
 class SelectedTrackControl:
 	__module__ = __name__
@@ -27,7 +27,7 @@ class SelectedTrackControl:
 		# lookup object for fast lookup of cc to mode
 		self.midi_cc_to_mode = {}
 		# parse midi_mapping recursive for MIDI.CC
-		self.mapping_parse_recursive(settings.midi_mapping.values())
+		self.mapping_parse_recursive(list(settings.midi_mapping.values()))
 		
 		self._device_control = DeviceControl(c_instance, self)
 		
@@ -84,10 +84,10 @@ class SelectedTrackControl:
 		for channel in range(16):
 			callbacks = self.midi_callbacks.get(channel, {})
 			
-			for note in callbacks.get(MIDI.NOTEON_STATUS,{}).keys():
+			for note in list(callbacks.get(MIDI.NOTEON_STATUS,{}).keys()):
 				Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, channel, note)
 			
-			for cc in callbacks.get(MIDI.CC_STATUS,{}).keys():
+			for cc in list(callbacks.get(MIDI.CC_STATUS,{}).keys()):
 				Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, channel, cc)
 	
 	

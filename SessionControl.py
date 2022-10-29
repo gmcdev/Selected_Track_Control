@@ -1,9 +1,9 @@
-import MIDI
-import settings
+from . import MIDI
+from . import settings
 import Live
-from Logging import log
+from .Logging import log
 
-from Control import Control
+from .Control import Control
 
 class SessionControl(Control):
 #	__module__ = __name__
@@ -341,9 +341,9 @@ class SessionControl(Control):
 		
 		found = False
 		if d_value > 0:
-			the_range = range(max_clip_slots)
+			the_range = list(range(max_clip_slots))
 		else:
-			the_range = range(max_clip_slots-1, -1, -1)
+			the_range = list(range(max_clip_slots-1, -1, -1))
 		
 		for i in the_range:
 			clip_slot = clip_slots[i]

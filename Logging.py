@@ -1,4 +1,4 @@
-from settings import debug_mode
+from .settings import debug_mode
 
 def log(msg):
 	if not debug_mode:

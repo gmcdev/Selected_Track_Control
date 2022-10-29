@@ -1,4 +1,4 @@
-from MIDI import * # import MIDI status codes
+from .MIDI import * # import MIDI status codes
 
 """ settings which MIDI-notes and CCs trigger which functionality """
 

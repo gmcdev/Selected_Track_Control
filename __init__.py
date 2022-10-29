@@ -1,4 +1,4 @@
-from SelectedTrackControl import SelectedTrackControl
+from .SelectedTrackControl import SelectedTrackControl
 
 def create_instance(c_instance):
 	return SelectedTrackControl(c_instance)

@@ -1,7 +1,7 @@
-import MIDI
+from . import MIDI
 #import inspect
-import settings
-from Logging import log
+from . import settings
+from .Logging import log
 
 class Control:
 #	__module__ = __name__
@@ -37,5 +37,5 @@ class Control:
 	
 	def show_message(self, msg):
 		""" display msg in Live's status bar """
-		assert isinstance(msg, (str, unicode))
+		assert isinstance(msg, str)
 		self.c_instance.show_message(msg)

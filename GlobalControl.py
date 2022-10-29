@@ -1,8 +1,8 @@
-import MIDI
-import settings
-from Logging import log
+from . import MIDI
+from . import settings
+from .Logging import log
 
-from Control import Control
+from .Control import Control
 
 class GlobalControl(Control):
 #	__module__ = __name__

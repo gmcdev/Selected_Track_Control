@@ -1,8 +1,8 @@
 import Live
 
-import MIDI
-import settings
-from Logging import log
+from . import MIDI
+from . import settings
+from .Logging import log
 
 
 

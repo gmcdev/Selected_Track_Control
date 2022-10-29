@@ -1,9 +1,9 @@
-import MIDI
-import settings
+from . import MIDI
+from . import settings
 #from Logging import log
 from Live import MixerDevice
 
-from Control import Control
+from .Control import Control
 
 class MixerControl(Control):
 #	__module__ = __name__

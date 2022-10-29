@@ -1,13 +1,13 @@
 import Live
 
-import MIDI
-import settings
+from . import MIDI
+from . import settings
 import math
-from Logging import log
+from .Logging import log
 
-from Control import Control
+from .Control import Control
 
-import ParamSetter
+from . import ParamSetter
 
 
 
@@ -39,7 +39,7 @@ class DeviceControl(Control):
 		
 		if settings.device_bestof:
 			# we have best-of parameters for devices => use these parameters first, then the rest
-			for device_name, indizes in settings.device_bestof.items():
+			for device_name, indizes in list(settings.device_bestof.items()):
 				new_indizes = [0,] + list(indizes)
 				i = 0
 				while i < 128:
@@ -103,7 +103,7 @@ class DeviceControl(Control):
 			index-= 1 # make it a zero-based index - this will throw a TypeError if no int
 			index = min(index, len(devices)-1) # if index to big, select last device
 			self.song.view.select_device(devices[index])
-		except TypeError, e:
+		except TypeError as e:
     		# settings.auto_select_device is not int, so assume String
 			index = -1
 			# loop through devices
