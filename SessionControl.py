@@ -48,10 +48,10 @@ class SessionControl(Control):
 			("select_scene", self.select_scene),
 			("select_track", self.select_track),
 			
-			("prev_scene", lambda value, mode, status: self.scroll_scenes(-1, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
-			("next_scene", lambda value, mode, status: self.scroll_scenes(1, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
-			("prev_track", lambda value, mode, status: self.scroll_tracks(-1, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
-			("next_track", lambda value, mode, status: self.scroll_tracks(1, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
+			("prev_scene", lambda value, mode, status: self.scroll_scene(-1, value, mode, MIDI.CC_STATUS)),
+			("next_scene", lambda value, mode, status: self.scroll_scene(1, value, mode, MIDI.CC_STATUS)),
+			("prev_track", lambda value, mode, status: self.scroll_track(-1, value, mode, MIDI.CC_STATUS)),
+			("next_track", lambda value, mode, status: self.scroll_track(1, value, mode, MIDI.CC_STATUS)),
 			
 			("toggle_track_fold", self.toggle_track_fold),
 
@@ -73,7 +73,7 @@ class SessionControl(Control):
 			("delete_selected_scene", lambda value, mode, status: self.delete_scene(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
 
 			("duplicate_track", self.duplicate_track), # duplicates track at value of MIDI message
-			("duplicate_selected_track", lambda value, mode, status: self.duplicate_track(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
+			("duplicate_selected_track", self.duplicate_track),
 			
 			("create_midi_track_at", self.create_midi_track_at),
 			("create_midi_track_after", lambda value, mode, status: self.create_midi_track_at(1, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
@@ -86,7 +86,7 @@ class SessionControl(Control):
 			("create_return_track", self.create_return_track),
 
 			("delete_track", self.delete_track),
-			("delete_selected_track", lambda value, mode, status: self.delete_track(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
+			("delete_selected_track", self.delete_track),
 			
 			("delete_device", self.delete_device), # delete device at value of MIDI message on current track
 			("delete_selected_device", lambda value, mode, status: self.delete_device(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
@@ -104,10 +104,9 @@ class SessionControl(Control):
 		if settings.auto_arm and not settings.has_midi_loopback:
 			if track.can_be_armed:
 				track.arm = True
-			for t in self.song.tracks:
-				if not t == track and t.can_be_armed:
-					t.arm = False
-	
+			# for t in self.song.tracks:
+			# 	if not t == track and t.can_be_armed:
+			# 		t.arm = False
 	
 	
 	
@@ -236,32 +235,45 @@ class SessionControl(Control):
 		scene.fire()
 		self.song.view.selected_scene = scene
 	
-	
-	def scroll_scenes(self, value, mode, status):
+	# value is overriden by lambda to control direction
+	# also, trigger mode will only respond to value of 127 (button down on fcb-505)
+	def scroll_scene(self, dir, value, mode, status):
+		if not MIDI.can_trigger(mode, value):
+			return
+		self.scroll_scenes(MIDI.RELATIVE_TWO_COMPLIMENT, value, status, dir)
+
+	def scroll_scenes(self, mode, value, status, dir = None):
+		log(f' >>> scroll scene dir {dir}, mode {mode}, value {value}')
 		if mode == MIDI.ABSOLUTE:
 			# invert value (127-value), somehow feels more natural to turn left to go fully down and right to go up
 			# also when assigning this to a fader this is more natural as up is up and down is down
 			index = int((127-value)/(128.0/len(self.song.scenes)))
 			self.song.view.selected_scene = self.song.scenes[index]
 		else:
-			self.song.view.selected_scene = self.get_scene_by_delta(self.song.view.selected_scene, value)
+			self.song.view.selected_scene = self.get_scene_by_delta(self.song.view.selected_scene, dir or value)
 	def select_first_scene(self, value, mode, status):
-		if status == MIDI.CC_STATUS and not value:
+		if (status == MIDI.CC_STATUS and not value) or not MIDI.can_trigger(mode, value):
 			return
 		self.song.view.selected_scene = self.song.scenes[0]
 	def select_last_scene(self, value, mode, status):
-		if status == MIDI.CC_STATUS and not value:
+		if (status == MIDI.CC_STATUS and not value) or not MIDI.can_trigger(mode, value):
 			return
 		self.song.view.selected_scene = self.song.scenes[len(self.song.scenes)-1]
 	
 	
-	def scroll_tracks(self, value, mode, status):
+	# value is overriden by lambda to control direction
+	# also, trigger mode will only respond to value of 127 (button down on fcb-505)
+	def scroll_track(self, dir, value, mode, status):
+		if not MIDI.can_trigger(mode, value):
+			return
+		self.scroll_tracks(MIDI.RELATIVE_TWO_COMPLIMENT, value, status, dir)
+	def scroll_tracks(self, value, mode, status, dir = None):
 		if mode == MIDI.ABSOLUTE:
 			tracks = self.get_all_tracks(only_visible = True)
 			index = int(value/(128.0/len(tracks)))
 			self.song.view.selected_track = tracks[index]
 		else:
-			self.song.view.selected_track = self.get_track_by_delta(self.song.view.selected_track, value)
+			self.song.view.selected_track = self.get_track_by_delta(self.song.view.selected_track, dir or value)
 		
 		self.auto_arm_track(self.song.view.selected_track)
 	
@@ -318,6 +330,8 @@ class SessionControl(Control):
 		# comment next two lines to support "Gate" launch mode on clips with CC
 		#if status == MIDI.CC_STATUS and not value:
 		#	return
+		if not MIDI.can_trigger(mode, value):
+			return
 		if self.song.view.highlighted_clip_slot:
 			if status == MIDI.NOTEON_STATUS:
 				value = 1
@@ -470,8 +484,10 @@ class SessionControl(Control):
 
 
 	def duplicate_track(self, value, mode, status):
-		self.song.duplicate_track(self.get_track_index(value, mode, status))
-
+		if not MIDI.can_trigger(mode, value):
+			return
+		self.song.duplicate_track(self.get_track_index(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS))
+		self.auto_arm_track(self.song.view.selected_track)
 
 	def create_midi_track_at(self, value, mode, status):
 		self.song.create_midi_track(self.get_track_index(value, mode, status))
@@ -483,8 +499,10 @@ class SessionControl(Control):
 		self.song.create_return_track()
 
 	def delete_track(self, value, mode, status):
+		if not MIDI.can_trigger(mode, value):
+			return
 		# works with grouped tracks too
-		self.song.delete_track(self.get_track_index(value, mode, status))
+		self.song.delete_track(self.get_track_index(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS))
 
 
 
@@ -537,7 +555,9 @@ class SessionControl(Control):
 		
 
 	def delete_clip(self, value, mode, status):
-		clip_slot = self.song.view.selected_track.clip_slots[self.get_clipslot_index(value, mode, status)]
+		if not MIDI.can_trigger(mode, value):
+			return
+		clip_slot = self.song.view.selected_track.clip_slots[self.get_clipslot_index(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)]
 		if clip_slot.has_clip:
 			clip_slot.delete_clip()
 		

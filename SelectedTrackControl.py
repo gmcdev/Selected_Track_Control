@@ -2,7 +2,7 @@ import Live
 
 from . import MIDI
 from . import settings
-#from Logging import log
+from .Logging import log
 
 
 from .SessionControl import SessionControl
@@ -18,7 +18,7 @@ class SelectedTrackControl:
 	__name__ = "SelectedTrackControl MIDI Remote Script"
 	
 	def __init__(self, c_instance):
-		#log("SelectedTrackControl::__init__")
+		log("SelectedTrackControl::__init__")
 		self.c_instance = c_instance
 		
 		# mappings for registered MIDI notes/CCs
@@ -46,7 +46,7 @@ class SelectedTrackControl:
 			if type(command) == tuple_type:
 				self.mapping_parse_recursive(command)
 			elif isinstance(command, MIDI.CC):
-				#log("MIDI CC %d is %s" % (command.key, command.mode))
+				log("MIDI CC %d is %s" % (command.key, command.mode))
 				self.midi_cc_to_mode[command.key] = command.mode
 		
 	
@@ -78,7 +78,7 @@ class SelectedTrackControl:
 	
 	# called from Live to build the MIDI bindings
 	def build_midi_map(self, midi_map_handle):
-		#log("SelectedTrackControl::build_midi_map")
+		log("SelectedTrackControl::build_midi_map")
 		script_handle = self.c_instance.handle()
 		
 		for channel in range(16):
@@ -100,7 +100,7 @@ class SelectedTrackControl:
 		key = midi_bytes[1]
 		value = midi_bytes[2]
 		
-		#log("receive_midi on channel %d, status %d, key %d, value %d" % (channel, status, key, value))
+		log("receive_midi on channel %d, status %d, key %d, value %d" % (channel, status, key, value))
 		
 		# execute callbacks that are registered for this event
 		callbacks = self.midi_callbacks.get(channel,{}).get(status,{}).get(key,[])
