@@ -118,7 +118,6 @@ class SessionControl(Control):
 	def select_playing_clip(self, value, mode, status):
 		if status == MIDI.CC_STATUS and not value:
 			return
-		
 		for clip_slot in self.song.view.selected_track.clip_slots:
 			if clip_slot.has_clip and clip_slot.clip.is_playing:
 				self.song.view.highlighted_clip_slot = clip_slot
@@ -127,9 +126,7 @@ class SessionControl(Control):
 	def toggle_auto_select_playing_clip(self, value, mode, status):
 		if status == MIDI.CC_STATUS and not value:
 			return
-		
 		settings.auto_select_playing_clip = not settings.auto_select_playing_clip
-		
 		if settings.auto_select_playing_clip:
 			self.on_track_selected()
 			self.song.view.add_selected_track_listener(self.on_track_selected)
@@ -180,12 +177,9 @@ class SessionControl(Control):
 		# ignore CC toggles (like on LPD8)
 		if status == MIDI.CC_STATUS and not value:
 			return
-		
-		
 		track = self.song.view.selected_track
 		if not track.is_foldable:
 			return
-		
 		if status == MIDI.NOTEON_STATUS:
 			track.fold_state = not track.fold_state
 		elif status == MIDI.CC_STATUS:
@@ -486,8 +480,18 @@ class SessionControl(Control):
 	def duplicate_track(self, value, mode, status):
 		if not MIDI.can_trigger(mode, value):
 			return
-		self.song.duplicate_track(self.get_track_index(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS))
+		src_track_index = self.get_track_index(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)
+		src_is_solo = self.song.view.selected_track.solo
+		self.song.duplicate_track(src_track_index)
 		self.auto_arm_track(self.song.view.selected_track)
+		# delete all clips in new track - I just want the config
+		for clip_slot in self.song.view.selected_track.clip_slots:
+			if clip_slot.has_clip:
+				clip_slot.delete_clip()
+		# if the src-track is solo'd apply same solo
+		if src_is_solo:
+			self.song.view.selected_track.solo = True
+
 
 	def create_midi_track_at(self, value, mode, status):
 		self.song.create_midi_track(self.get_track_index(value, mode, status))

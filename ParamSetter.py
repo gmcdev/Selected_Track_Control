@@ -37,6 +37,7 @@ def general_device(song, device, param, value, mode, status):
 		if mode == MIDI.ABSOLUTE:
 			param.value = param_range*value/127.0 + param.min
 		elif mode == MIDI.TRIGGER:
+			log(" - TRIGGER")
 			return
 		else:
 			#param.value = max(param.min, min(param.max, param.value + (value/100.0)))

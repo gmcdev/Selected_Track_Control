@@ -214,22 +214,22 @@ midi_mapping = {
 	"output_none": Note(65),
 	
 	
-	"volume": (CC(22), CC(7, ABSOLUTE)),
-	"pan": (CC(23), CC(10, ABSOLUTE)),
+	# "volume": (CC(22), CC(7, ABSOLUTE)),
+	# "pan": (CC(23), CC(10, ABSOLUTE)),
 	
 	"reset_volume": Note(22),
 	"reset_pan": Note(23),
 	
-	"sends": (
-		(CC(24), CC(12, ABSOLUTE)),
-		(CC(25), CC(13, ABSOLUTE)),
-		(CC(26), CC(14, ABSOLUTE)),
-		(CC(27), CC(15, ABSOLUTE)),
-		(CC(28), CC(16, ABSOLUTE)),
-		(CC(29), CC(17, ABSOLUTE)),
-		(CC(30), CC(18, ABSOLUTE)),
-		(CC(31), CC(19, ABSOLUTE)),
-	),
+	# "sends": (
+	# 	(CC(24), CC(12, ABSOLUTE)),
+	# 	(CC(25), CC(13, ABSOLUTE)),
+	# 	(CC(26), CC(14, ABSOLUTE)),
+	# 	(CC(27), CC(15, ABSOLUTE)),
+	# 	(CC(28), CC(16, ABSOLUTE)),
+	# 	(CC(29), CC(17, ABSOLUTE)),
+	# 	(CC(30), CC(18, ABSOLUTE)),
+	# 	(CC(31), CC(19, ABSOLUTE)),
+	# ),
 	# reset_sends is deprecated
 	#"reset_sends": (
 	#	Note(24),
@@ -271,7 +271,7 @@ midi_mapping = {
 	"play_prev_clip": Note(41),
 	"play_next_available_clip": Note(44),
 	"play_prev_available_clip": Note(42),
-	"stop_all_clips": CC(23),
+	"stop_all_clips": Note(43),
 	"stop_selected_track": Note(48),
 	
 	"select_playing_clip": CC(27), # highlights clipslot with currently playing clip 
@@ -403,7 +403,7 @@ midi_mapping = {
 	#"delete_scene": CC(<INT>, ABSOLUTE), # depending on value
 	"delete_selected_scene": Note(100),
 	#"duplicate_track": CC(<INT>, ABSOLUTE), # depending on value
-	"duplicate_selected_track": CC(23, TRIGGER),
+	"duplicate_selected_track": CC(22, TRIGGER),
 	#"create_midi_track_at": CC(<INT>, ABSOLUTE), # depending on value
 	"create_midi_track_after": Note(102),
 	#"create_midi_track_before": Note(),
