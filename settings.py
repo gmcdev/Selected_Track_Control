@@ -253,10 +253,10 @@ midi_mapping = {
 	
 	"prev_scene": CC(30, TRIGGER),
 	"next_scene": CC(31, TRIGGER),
-	"prev_track": CC(28, TRIGGER),
-	"next_track": CC(29, TRIGGER),
-	"prev_group": CC(25, TRIGGER),
-	"next_group": CC(26, TRIGGER),
+	"prev_track": CC(25, TRIGGER),
+	"next_track": CC(26, TRIGGER),
+	"prev_group": CC(28, TRIGGER),
+	"next_group": CC(29, TRIGGER),
 	
 	"play_selected_scene": Note(39),
 	"play_next_scene": Note(40),
@@ -275,6 +275,7 @@ midi_mapping = {
 	"play_prev_available_clip": Note(42),
 	"stop_all_clips": Note(43),
 	"stop_selected_track": Note(48),
+	"disarm_all_tracks": CC(22, TRIGGER),
 	
 	"select_playing_clip": CC(27), # highlights clipslot with currently playing clip 
 	"toggle_auto_select_playing_clip": Note(51),
@@ -398,6 +399,7 @@ midi_mapping = {
 	#"create_scene_at": CC(<INT>, ABSOLUTE),# depending on value
 	"create_scene_before": Note(95),
 	"create_scene_after": Note(96),
+	"create_new_scene": CC(24, TRIGGER),
 	#"duplicate_scene": CC(<INT>, ABSOLUTE),# depending on value
 	"duplicate_selected_scene": Note(97),
 	"capture_scene": Note(98),
@@ -405,7 +407,7 @@ midi_mapping = {
 	#"delete_scene": CC(<INT>, ABSOLUTE), # depending on value
 	"delete_selected_scene": Note(100),
 	#"duplicate_track": CC(<INT>, ABSOLUTE), # depending on value
-	"duplicate_selected_track": CC(22, TRIGGER),
+	"duplicate_selected_track": CC(27, TRIGGER),
 	#"create_midi_track_at": CC(<INT>, ABSOLUTE), # depending on value
 	"create_midi_track_after": Note(102),
 	#"create_midi_track_before": Note(),
@@ -420,7 +422,7 @@ midi_mapping = {
 	#"duplicate_clip_slot": CC(<INT>, ABSOLUTE), # depending on value
 	"duplicate_selected_clip_slot": Note(107),
 	#"delete_clip": CC(<INT>, ABSOLUTE), # depending on value
-	"delete_selected_clip": CC(24, TRIGGER),
+	"delete_selected_clip": CC(23, TRIGGER),
 
 	"re_enable_automation": Note(109),
 	"arrangement_overdub": Note(117),

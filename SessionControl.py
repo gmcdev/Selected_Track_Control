@@ -38,6 +38,7 @@ class SessionControl(Control):
 			
 			("stop_all_clips", self.stop_all_clips),
 			("stop_selected_track", self.stop_selected_track),
+			("disarm_all_tracks", self.disarm_all_tracks),
 			
 			("first_track", self.select_first_track),
 			("last_track", self.select_last_track),
@@ -64,6 +65,7 @@ class SessionControl(Control):
 			("create_scene_at", self.create_scene_at), # creates scene at value of MIDI message
 			("create_scene_before", lambda value, mode, status: self.create_scene_at(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
 			("create_scene_after", lambda value, mode, status: self.create_scene_at(1, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
+			("create_new_scene", self.create_new_scene),
 
 			("duplicate_scene", self.duplicate_scene), # duplicates scene at value of MIDI message
 			("duplicate_selected_scene", lambda value, mode, status: self.duplicate_scene(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)),
@@ -109,8 +111,13 @@ class SessionControl(Control):
 			# for t in self.song.tracks:
 			# 	if not t == track and t.can_be_armed:
 			# 		t.arm = False
-	
-	
+	def disarm_all_tracks(self, value, mode, status):
+		if not MIDI.can_trigger(mode, value):
+			return
+		tracks = self.get_all_tracks()
+		for track in tracks:
+			if track.can_be_armed:
+				track.arm = False
 	
 	
 	def on_track_selected(self):
@@ -345,10 +352,12 @@ class SessionControl(Control):
 		self.auto_arm_track(self.song.view.selected_track)
 	
 	def stop_selected_track(self, value, mode, status):
+		if not MIDI.can_trigger(mode, value):
+			return
 		if status == MIDI.CC_STATUS and not value:
 			return
 		self.song.view.selected_track.stop_all_clips()
-	
+		self.song.view.selected_track.arm = False
 	
 	
 	
@@ -378,7 +387,7 @@ class SessionControl(Control):
 				value = 0
 			else:
 				value = 1
-
+			self.auto_arm_track(self.song.view.selected_track)
 			self.song.view.highlighted_clip_slot.set_fire_button_state(value) #fire()
 	
 	def toggle_selected_clip_slot(self, value, mode, status):
@@ -507,6 +516,11 @@ class SessionControl(Control):
 	def create_scene_at(self, value, mode, status):
 		self.song.create_scene(self.get_scene_index(value, mode, status))
 
+	def create_new_scene(self, value, mode, status):
+		if not MIDI.can_trigger(mode, value):
+			return
+		self.song.create_scene(-1)
+
 	def duplicate_scene(self, value, mode, status):
 		self.song.duplicate_scene(self.get_scene_index(value, mode, status))
 		
@@ -528,7 +542,6 @@ class SessionControl(Control):
 		src_track_index = self.get_track_index(0, MIDI.RELATIVE_TWO_COMPLIMENT, MIDI.CC_STATUS)
 		src_is_solo = self.song.view.selected_track.solo
 		self.song.duplicate_track(src_track_index)
-		self.auto_arm_track(self.song.view.selected_track)
 		# delete all clips in new track - I just want the config
 		for clip_slot in self.song.view.selected_track.clip_slots:
 			if clip_slot.has_clip:
