@@ -13,7 +13,7 @@ from .Logging import log
 # general device parameter setter
 def general_device(song, device, param, value, mode, status):
 	param_range = param.max - param.min
-	# log("set %s (%s): %s - %s" % (param.name, param.value, param.min, param.max))
+	log("set %s (%s): %s - %s" % (param.name, param.value, param.min, param.max))
 	if param.is_quantized:
 		if status == MIDI.CC_STATUS and mode == MIDI.ABSOLUTE:
 			# absolute CC

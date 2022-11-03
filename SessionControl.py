@@ -52,6 +52,8 @@ class SessionControl(Control):
 			("next_scene", lambda value, mode, status: self.scroll_scene(1, value, mode, MIDI.CC_STATUS)),
 			("prev_track", lambda value, mode, status: self.scroll_track(-1, value, mode, MIDI.CC_STATUS)),
 			("next_track", lambda value, mode, status: self.scroll_track(1, value, mode, MIDI.CC_STATUS)),
+			("prev_group", lambda value, mode, status: self.scroll_track('prev', value, mode, MIDI.CC_STATUS)),
+			("next_group", lambda value, mode, status: self.scroll_track('next', value, mode, MIDI.CC_STATUS)),
 			
 			("toggle_track_fold", self.toggle_track_fold),
 
@@ -150,7 +152,44 @@ class SessionControl(Control):
 			tracks.append(track)
 		tracks.append(self.song.master_track)
 		return tracks
-		
+
+	# helper to determine delta to previous group (or current index if none)
+	def get_delta_to_group(self, dir):
+		tracks = self.get_all_tracks()
+		cur_track_i = 0
+		for curi, track in enumerate(tracks):
+			if track == self.song.view.selected_track:
+				cur_track_i = curi
+				cur_group_track = track.group_track
+				break
+		log(f'current track is {self.song.view.selected_track.name} at {str(cur_track_i)}')
+		if cur_group_track:
+			log(f'current group is {cur_group_track.name}')
+		if dir == 'prev':
+			return self.get_delta_to_prev_group(cur_track_i)
+		elif dir == 'next':
+			for nexi in range(cur_track_i + 1, len(tracks)):
+				if cur_group_track and tracks[nexi].group_track == cur_group_track:
+					continue
+				elif tracks[nexi].group_track == tracks[cur_track_i]:
+					continue
+				return nexi - cur_track_i + self.get_delta_to_prev_group(nexi + 1) + 1
+		log(f' - no prev group, no change')
+		return 0
+	
+	def get_delta_to_prev_group(self, index):
+		tracks = self.get_all_tracks()
+		group_track = None
+		for pexi in reversed(range(0, index)):
+			log(str(pexi))
+			if not group_track:
+				group_track = tracks[pexi].group_track if tracks[pexi].group_track else tracks[pexi]
+				log(f'found group-track {group_track.name} at {str(pexi)}')
+			if group_track and tracks[pexi] == group_track:
+				log(f'matched group {tracks[pexi].name}, delta is {str(pexi - index)}')
+				return pexi - index
+		return 0
+
 	
 	# helper function to go from one track to the other
 	def get_track_by_delta(self, track, d_value):
@@ -244,7 +283,7 @@ class SessionControl(Control):
 			index = int((127-value)/(128.0/len(self.song.scenes)))
 			self.song.view.selected_scene = self.song.scenes[index]
 		else:
-			self.song.view.selected_scene = self.get_scene_by_delta(self.song.view.selected_scene, dir or value)
+			self.song.view.selected_scene = self.get_scene_by_delta(self.song.view.selected_scene, dir)
 	def select_first_scene(self, value, mode, status):
 		if (status == MIDI.CC_STATUS and not value) or not MIDI.can_trigger(mode, value):
 			return
@@ -260,6 +299,10 @@ class SessionControl(Control):
 	def scroll_track(self, dir, value, mode, status):
 		if not MIDI.can_trigger(mode, value):
 			return
+		if dir == 'prev':
+			dir = self.get_delta_to_group('prev')
+		elif dir == 'next':
+			dir = self.get_delta_to_group('next')
 		self.scroll_tracks(MIDI.RELATIVE_TWO_COMPLIMENT, value, status, dir)
 	def scroll_tracks(self, value, mode, status, dir = None):
 		if mode == MIDI.ABSOLUTE:
@@ -267,8 +310,10 @@ class SessionControl(Control):
 			index = int(value/(128.0/len(tracks)))
 			self.song.view.selected_track = tracks[index]
 		else:
-			self.song.view.selected_track = self.get_track_by_delta(self.song.view.selected_track, dir or value)
-		
+			log(f'>>scroll track {str(dir)}')
+			next_track = self.get_track_by_delta(self.song.view.selected_track, dir)
+			log(f' >>next track {next_track.name}')
+			self.song.view.selected_track = next_track
 		self.auto_arm_track(self.song.view.selected_track)
 	
 	

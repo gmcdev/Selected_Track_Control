@@ -244,8 +244,8 @@ midi_mapping = {
 	
 	
 	# session controls
-	"scroll_scenes": (CC(84), CC(9, ABSOLUTE)),
-	"scroll_tracks": (CC(85), CC(11, ABSOLUTE)),
+	# "scroll_scenes": (CC(84), CC(9, ABSOLUTE)),
+	# "scroll_tracks": (CC(85), CC(11, ABSOLUTE)),
 	"select_scene": CC(2, ABSOLUTE),
 	"select_track": CC(8, ABSOLUTE),
 	
@@ -255,13 +255,15 @@ midi_mapping = {
 	"next_scene": CC(31, TRIGGER),
 	"prev_track": CC(28, TRIGGER),
 	"next_track": CC(29, TRIGGER),
+	"prev_group": CC(25, TRIGGER),
+	"next_group": CC(26, TRIGGER),
 	
-	"play_selected_scene": CC(22),
+	"play_selected_scene": Note(39),
 	"play_next_scene": Note(40),
 	"play_prev_scene": Note(36),
 	
-	"first_scene": CC(25, TRIGGER),
-	"last_scene": CC(26, TRIGGER),
+	# "first_scene": CC(25, TRIGGER),
+	# "last_scene": CC(26, TRIGGER),
 	"first_track": Note(46),
 	"last_track": Note(47),
 	
