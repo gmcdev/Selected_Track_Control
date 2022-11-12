@@ -53,8 +53,8 @@ class SessionControl(Control):
 			("next_scene", lambda value, mode, status: self.scroll_scene(1, value, mode, MIDI.CC_STATUS)),
 			("prev_track", lambda value, mode, status: self.scroll_track(-1, value, mode, MIDI.CC_STATUS)),
 			("next_track", lambda value, mode, status: self.scroll_track(1, value, mode, MIDI.CC_STATUS)),
-			("prev_group", lambda value, mode, status: self.scroll_track('prev', value, mode, MIDI.CC_STATUS)),
-			("next_group", lambda value, mode, status: self.scroll_track('next', value, mode, MIDI.CC_STATUS)),
+			("prev_group", lambda value, mode, status: self.scroll_group('prev', value, mode, MIDI.CC_STATUS)),
+			("next_group", lambda value, mode, status: self.scroll_group('next', value, mode, MIDI.CC_STATUS)),
 			
 			("toggle_track_fold", self.toggle_track_fold),
 
@@ -149,20 +149,20 @@ class SessionControl(Control):
 	
 	
 	
-	def get_all_tracks(self, only_visible = False):
+	def get_all_tracks(self, only_visible = False, include_send_tracks = False):
 		tracks = []
 		for track in self.song.tracks:
 			if not only_visible or track.is_visible:
 				tracks.append(track)
-				
-		for track in self.song.return_tracks:
-			tracks.append(track)
-		tracks.append(self.song.master_track)
+		if include_send_tracks:
+			for track in self.song.return_tracks:
+				tracks.append(track)
+			tracks.append(self.song.master_track)
 		return tracks
 
 	# helper to determine delta to previous group (or current index if none)
 	def get_delta_to_group(self, dir):
-		tracks = self.get_all_tracks()
+		tracks = self.get_all_tracks(only_visible = True)
 		cur_track_i = 0
 		for curi, track in enumerate(tracks):
 			if track == self.song.view.selected_track:
@@ -185,7 +185,7 @@ class SessionControl(Control):
 		return 0
 	
 	def get_delta_to_prev_group(self, index):
-		tracks = self.get_all_tracks()
+		tracks = self.get_all_tracks(only_visible = True)
 		group_track = None
 		for pexi in reversed(range(0, index)):
 			log(str(pexi))
@@ -277,20 +277,20 @@ class SessionControl(Control):
 	
 	# value is overriden by lambda to control direction
 	# also, trigger mode will only respond to value of 127 (button down on fcb-505)
-	def scroll_scene(self, dir, value, mode, status):
+	def scroll_scene(self, delta, value, mode, status):
 		if not MIDI.can_trigger(mode, value):
 			return
-		self.scroll_scenes(MIDI.RELATIVE_TWO_COMPLIMENT, value, status, dir)
+		self.scroll_scenes(delta, MIDI.RELATIVE_TWO_COMPLIMENT, status)
 
-	def scroll_scenes(self, mode, value, status, dir = None):
-		log(f' >>> scroll scene dir {dir}, mode {mode}, value {value}')
+	def scroll_scenes(self, value, mode, status):
+		log(f' >>> scroll scene delta {value}, mode {mode}, value {value}')
 		if mode == MIDI.ABSOLUTE:
 			# invert value (127-value), somehow feels more natural to turn left to go fully down and right to go up
 			# also when assigning this to a fader this is more natural as up is up and down is down
 			index = int((127-value)/(128.0/len(self.song.scenes)))
 			self.song.view.selected_scene = self.song.scenes[index]
 		else:
-			self.song.view.selected_scene = self.get_scene_by_delta(self.song.view.selected_scene, dir)
+			self.song.view.selected_scene = self.get_scene_by_delta(self.song.view.selected_scene, value)
 	def select_first_scene(self, value, mode, status):
 		if (status == MIDI.CC_STATUS and not value) or not MIDI.can_trigger(mode, value):
 			return
@@ -303,25 +303,27 @@ class SessionControl(Control):
 	
 	# value is overriden by lambda to control direction
 	# also, trigger mode will only respond to value of 127 (button down on fcb-505)
-	def scroll_track(self, dir, value, mode, status):
+	def scroll_track(self, delta, value, mode, status):
+		log(f'{value}, {mode}')
 		if not MIDI.can_trigger(mode, value):
 			return
-		if dir == 'prev':
-			dir = self.get_delta_to_group('prev')
-		elif dir == 'next':
-			dir = self.get_delta_to_group('next')
-		self.scroll_tracks(MIDI.RELATIVE_TWO_COMPLIMENT, value, status, dir)
-	def scroll_tracks(self, value, mode, status, dir = None):
+		self.scroll_tracks(delta, MIDI.RELATIVE_TWO_COMPLIMENT, status)
+
+	def scroll_group(self, dir, value, mode, status):
+		if not MIDI.can_trigger(mode, value):
+			return
+		self.scroll_tracks(self.get_delta_to_group(dir), MIDI.RELATIVE_TWO_COMPLIMENT, status) 
+
+	def scroll_tracks(self, value, mode, status):
 		if mode == MIDI.ABSOLUTE:
 			tracks = self.get_all_tracks(only_visible = True)
 			index = int(value/(128.0/len(tracks)))
 			self.song.view.selected_track = tracks[index]
 		else:
-			log(f'>>scroll track {str(dir)}')
-			next_track = self.get_track_by_delta(self.song.view.selected_track, dir)
+			log(f'>>scroll track by delta {str(value)}')
+			next_track = self.get_track_by_delta(self.song.view.selected_track, value)
 			log(f' >>next track {next_track.name}')
 			self.song.view.selected_track = next_track
-		self.auto_arm_track(self.song.view.selected_track)
 	
 	
 	
